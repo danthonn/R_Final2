@@ -1,0 +1,234 @@
+---
+title: "R_Week_5_Final_Daniel_Thonn"
+output: html_document
+course: R-Bridge CUNY MSDA program
+Reference: http://t-redactyl.io/blog/2016/02/creating-plots-in-r-using-ggplot2-part-7-histograms.html
+Reference-2: http://stackoverflow.com/questions/10680658/how-can-i-create-a-correlation-matrix-in-r
+Reference-3: https://www.r-bloggers.com/what-a-nice-looking-scatterplot/
+Reference-4: https://cran.r-project.org/doc/contrib/Lemon-kickstart/kr_addat.html
+---
+
+## Assignment Week-5-Final: Exploratory Data Analysis
+
+### Dataset: barro.csv (cross country GDP growth rates)
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#install.packages(c("ggplot2","gcookbook"))
+#install.packages("stringr")
+library(ggplot2)
+library(gcookbook)
+library(stringr)
+
+#data(package="gcookbook")
+#data(package="MASS")
+
+#vignette(package="ggplot2")
+#vignette(package="gcookbook")
+```
+
+
+```{r, echo=TRUE}
+#install.packages("RCurl")
+#install.packages("XML")
+#install.packages("corrplot")
+library(stringr)
+library(corrplot)
+
+#check data path
+#getwd()
+
+#load borr dataset
+dat = read.csv("barro.csv", header = TRUE)
+# examine borro dataset
+#dat
+typeof(dat)
+
+#examine header
+head(dat)
+
+#check named elements in dat
+names(dat)
+#Result: there are 6 column names
+
+#check the structure of dat
+str(dat)
+# Result: 32 objects with 6 variables
+
+#dat
+#View(dat)
+colnames(dat) = c("Country","Annual Change Per Capita GDP", "Initial Per Capita GDP","Male Secondary Education","Female Secondary Education","Female Higher Education","Male Higher Education","Life Expectancy","Human Capital","Education/GDP","Investment/GDP","Public Consumption/GDP","Black Market Premium","Political Instability","Growth Rate Terms Trade" )
+dat
+
+# Histogram Charts
+hist(dat$"Annual Change Per Capita GDP")
+hist(dat$"Initial Per Capita GDP")
+x0 <- dat$Country
+x1 <- dat$"Annual Change Per Capita GDP"
+x2 <- dat$"Initial Per Capita GDP"
+x3 <- dat$"Male Secondary Education"
+x4 <- dat$"Female Secondary Education"
+x5 <- dat$"Female Higher Education"
+x6 <- dat$"Male Higher Education"
+x7 <- dat$"Life Expectancy"
+x8 <- dat$"Human Capital"
+x9 <- dat$"Education/GDP"
+x10 <- dat$"Investment/GDP"
+x11 <- dat$"Public Consumption/GDP"
+x12 <- dat$"Black Market Premium"
+x13 <- dat$"Political Instability"
+x14 <- dat$"Growth Rate Terms Trade"
+
+#x0
+
+
+dat1 <- data.frame(x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14)
+#dat1
+matrix1 <- cor(dat1)
+matrix1
+corrplot(matrix1, method = "circle")
+#This indicates a higher correlation amont the following pairs:
+# x2-x7 : "Initial Per Capita GDP" - "Life Expectancy"
+# x3-x4 : "Male Secondary Education" - "Female Secondary Education"
+# x5-x6 : "Female Higher Education"- "Male Higher Education"
+
+#x3
+#x4
+
+plot(x2,x7)
+
+plot(dat1[,c(2,3,4,5,6,7)])
+
+#dat1
+
+# Split off the Country from CountryYear
+xa <- substr(x0,1,nchar(as.character(x0))-2)
+#xa
+
+# Split off the Year from ContryYear
+xb <- substr(x0,nchar(as.character(x0))-1,nchar(as.character(x0)))
+#xb
+
+# Create a new dataframe with Country and Year
+dat2 <- data.frame(xa,xb,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14)
+#dat2
+
+# Add Friendly column names
+colnames(dat2) = c("Country","Year","Annual Change Per Capita GDP", "Initial Per Capita GDP","Male Secondary Education","Female Secondary Education","Female Higher Education","Male Higher Education","Life Expectancy","Human Capital","Education/GDP","Investment/GDP","Public Consumption/GDP","Black Market Premium","Political Instability","Growth Rate Terms Trade" )
+
+#dat2
+
+# Add Derived Columns to dat2
+
+dat2$"Secondary Education" <- dat2$"Male Secondary Education" + dat2$"Female Secondary Education"
+#dat2
+
+dat2$"Higher Education" = dat2$"Female Higher Education" + dat2$"Male Higher Education"
+#dat2
+
+dat2$"Total Education" = dat2$"Secondary Education" + dat2$"Higher Education"
+
+dat2
+
+# Question: what is the behaviour of growth rate of a country relative to Life Expectancy and Total Education
+
+# "Initial Per Capita GDP" > 7.745
+
+dat3 <- dat2[,c("Country","Year","Annual Change Per Capita GDP","Initial Per Capita GDP","Life Expectancy","Total Education")]
+dat3  
+
+summary(dat3)
+
+# Filter by Initial Per Capita GDP" > 7.745 & Year == 75
+dat4 <- dat3[which(dat3$"Initial Per Capita GDP" > 7.745), ]
+dat5 <- dat4[which(dat4$"Year" == 75), ]
+#dat5
+
+summary(dat5)
+
+
+plot(dat5$`Initial Per Capita GDP`,dat5$`Life Expectancy`,xlab="Initial GDP",ylab="Life Expectancy",col=2)
+par(new=T)
+plot(dat5$`Initial Per Capita GDP`,dat5$`Total Education`,axes=F,xlab="",ylab="",pch=2,col=3)
+axis(side=4,col.axis=3)
+par(new=T)
+mtext("Total Education",side=2,line=2,col=3)
+
+plot(dat5$`Annual Change Per Capita GDP`,dat5$`Life Expectancy`,xlab="Ann Chg GDP",ylab="Life Expectancy",col=2)
+par(new=T)
+plot(dat5$`Annual Change Per Capita GDP`,dat5$`Total Education`,axes=F,xlab="",ylab="",pch=2,col=3)
+axis(side=4,col.axis=3)
+par(new=T)
+mtext("Total Education",side=2,line=2,col=3)
+
+
+# Filter by Initial Per Capita GDP" > 7.745 & Year == 85
+
+dat5 <- dat4[which(dat4$"Year" == 85), ]
+
+plot(dat5$`Initial Per Capita GDP`,dat5$`Life Expectancy`,xlab="Initial GDP",ylab="Life Expectancy",col=2)
+par(new=T)
+plot(dat5$`Initial Per Capita GDP`,dat5$`Total Education`,axes=F,xlab="",ylab="",pch=2,col=3)
+axis(side=4,col.axis=3)
+par(new=T)
+mtext("Total Education",side=2,line=2,col=3)
+
+plot(dat5$`Annual Change Per Capita GDP`,dat5$`Life Expectancy`,xlab="Ann Chg GDP",ylab="Life Expectancy",col=2)
+par(new=T)
+plot(dat5$`Annual Change Per Capita GDP`,dat5$`Total Education`,axes=F,xlab="",ylab="",pch=2,col=3)
+axis(side=4,col.axis=3)
+par(new=T)
+mtext("Total Education",side=2,line=2,col=3)
+
+# Filter by Initial Per Capita GDP" < 7.745 & Year == 75
+
+#summary(dat3)
+
+dat4 <- dat3[which(dat3$"Initial Per Capita GDP" < 7.745), ]
+#dat4
+dat5 <- dat4[which(dat4$"Year" == 75), ]
+#dat5
+#summary(dat5)
+
+
+plot(dat5$`Initial Per Capita GDP`,dat5$`Life Expectancy`,xlab="Initial GDP",ylab="Life Expectancy",col=2)
+par(new=T)
+plot(dat5$`Initial Per Capita GDP`,dat5$`Total Education`,axes=F,xlab="",ylab="",pch=2,col=3)
+axis(side=4,col.axis=3)
+par(new=T)
+mtext("Total Education",side=2,line=2,col=3)
+
+plot(dat5$`Annual Change Per Capita GDP`,dat5$`Life Expectancy`,xlab="Ann Chg GDP",ylab="Life Expectancy",col=2)
+par(new=T)
+plot(dat5$`Annual Change Per Capita GDP`,dat5$`Total Education`,axes=F,xlab="",ylab="",pch=2,col=3)
+axis(side=4,col.axis=3)
+par(new=T)
+mtext("Total Education",side=2,line=2,col=3)
+
+
+# Filter by Initial Per Capita GDP" < 7.745 & Year == 85
+dat5 <- dat4[which(dat4$"Year" == 85), ]
+#dat5
+
+plot(dat5$`Initial Per Capita GDP`,dat5$`Life Expectancy`,xlab="Initial GDP",ylab="Life Expectancy",col=2)
+par(new=T)
+plot(dat5$`Initial Per Capita GDP`,dat5$`Total Education`,axes=F,xlab="",ylab="",pch=2,col=3)
+axis(side=4,col.axis=3)
+par(new=T)
+mtext("Total Education",side=2,line=2,col=3)
+
+plot(dat5$`Annual Change Per Capita GDP`,dat5$`Life Expectancy`,xlab="Ann Chg GDP",ylab="Life Expectancy",col=2)
+par(new=T)
+plot(dat5$`Annual Change Per Capita GDP`,dat5$`Total Education`,axes=F,xlab="",ylab="",pch=2,col=3)
+axis(side=4,col.axis=3)
+par(new=T)
+mtext("Total Education",side=2,line=2,col=3)
+
+```
+
+Conclusion: From the plots it can be seent that countrys with lower Initial GDP's respond most positively to increases in Life Expectancy and Education, and that this trend continues over time. (from 1975 to 1985)
+
